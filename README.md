@@ -6,7 +6,7 @@ pong written in c++
 
 you will need to add the headers and libs for SDL2 / SDL2_image / SDL2_mixer (may also need to include zlib.dll to the root folder).
 
-My file stucture as below (I chose to symlink the various SDL2 libraries):
+My file stucture as below (I chose to symlink the various SDL2 libraries and include them with a makefile):
 
 <img width="474" alt="image" src="https://user-images.githubusercontent.com/74871160/163383781-e9cfa833-0483-4c1f-a0e3-90f08fe670cf.png">
 
