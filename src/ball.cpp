@@ -7,17 +7,11 @@
 #include <constants.hpp>
 #include <collision_check.hpp>
 
-bool rightSide(int x) {
-    if(x < SCREEN_WIDTH /2)
-        return false;
-    return true;
-};
-
 Ball::Ball(int x, int y, Player *playerOne, Player *playerTwo, Sounds *sounds)
     : playerOne(playerOne), playerTwo(playerTwo), sounds(sounds)
 {
-    // randomly start left or right
-    xVelocity = (float)rand() / RAND_MAX > 0.5f ? -VELOCITY : VELOCITY;
+    // start with ball heading toward player two
+    xVelocity = VELOCITY;
 
     yVelocity = 0;
 
@@ -29,6 +23,8 @@ Ball::Ball(int x, int y, Player *playerOne, Player *playerTwo, Sounds *sounds)
         srcRect.w * SCALE_FACTOR,
         srcRect.h * SCALE_FACTOR
       };
+
+    currentPlayer = CurrentPlayer::playerTwo;
 }
 
 void Ball::render()
@@ -39,11 +35,11 @@ void Ball::render()
 
 void Ball::move()
 {
-    bool side = rightSide(dstRect.x);
-
     //  if player one has scored
     if(dstRect.x > SCREEN_WIDTH)
     {
+        sounds->playScoredSound();
+
         dstRect.x = SCREEN_WIDTH / 2 - (2 * SCALE_FACTOR);
         dstRect.y = SCREEN_HEIGHT / 2 - (2 * SCALE_FACTOR);
         xVelocity = VELOCITY;
@@ -51,13 +47,16 @@ void Ball::move()
 
         playerOne->setScore(playerOne->getScore() + 1);
 
-        sounds->playScoredSound();
+
+        currentPlayer = CurrentPlayer::playerTwo;
 
         return;
     }
 
     //  if player two has scored
     if(dstRect.x + dstRect.w < 0){
+        sounds->playScoredSound();
+
         dstRect.x = SCREEN_WIDTH / 2 - (2 * SCALE_FACTOR);
         dstRect.y = SCREEN_HEIGHT / 2 - (2 * SCALE_FACTOR);
         xVelocity = -VELOCITY;
@@ -65,7 +64,8 @@ void Ball::move()
 
         playerTwo->setScore(playerTwo->getScore() + 1);
 
-        sounds->playScoredSound();
+
+        currentPlayer = CurrentPlayer::playerOne;
 
         return;
     }
@@ -80,18 +80,19 @@ void Ball::move()
       return;
     }
 
+    // change to use a state system, then only need to check for the other collision, also can replace side function with this. 
     // check for player collision and if collided, rebound
 
-    CollisionType playerOneCollision = collisionCheck(&dstRect, playerOne->getDstRect());
-    CollisionType playerTwoCollision = collisionCheck(&dstRect, playerTwo->getDstRect());
+    Player * playerToCheck = currentPlayer == CurrentPlayer::playerOne ? playerOne : playerTwo;
+ 
+    CollisionType collisionType = collisionCheck(&dstRect, playerToCheck->getDstRect());
 
-    if(playerOneCollision != no_collision) sounds->playPlayerOneSound();
-    else if (playerTwoCollision != no_collision) sounds->playPlayerTwoSound();
+    if(currentPlayer == CurrentPlayer::playerOne && collisionType != no_collision) sounds->playPlayerOneSound();
+    else if (currentPlayer != CurrentPlayer::playerOne && collisionType != no_collision) sounds->playPlayerTwoSound();
 
-
-    if (playerOneCollision == top || playerTwoCollision == top)
+     if (collisionType == top)
     {
-        if(side){
+        if(currentPlayer == CurrentPlayer::playerTwo){
              xVelocity = -DIAGONAL_VELOCITY;
         }else{
              xVelocity = DIAGONAL_VELOCITY;
@@ -101,18 +102,34 @@ void Ball::move()
         yVelocity = -DIAGONAL_VELOCITY ;
         dstRect.y += yVelocity;
 
+        if(currentPlayer == CurrentPlayer::playerTwo)
+        {
+            currentPlayer = CurrentPlayer::playerOne;
+        }else
+        {
+            currentPlayer = CurrentPlayer::playerTwo;
+        }
+
     }
-    else if(playerOneCollision == middle || playerTwoCollision == middle)
+    else if(collisionType == middle)
     {
       xVelocity = xVelocity < 0 ? VELOCITY : -VELOCITY;
       dstRect.x += xVelocity;
 
       yVelocity = 0;
       dstRect.y += yVelocity;
+
+      if(currentPlayer == CurrentPlayer::playerTwo)
+        {
+            currentPlayer = CurrentPlayer::playerOne;
+        }else
+        {
+            currentPlayer = CurrentPlayer::playerTwo;
+        }
     }
-    else if(playerOneCollision == bottom || playerTwoCollision == bottom)
+    else if(collisionType == bottom)
     {
-        if(side){
+        if(currentPlayer == CurrentPlayer::playerTwo){
         xVelocity = -DIAGONAL_VELOCITY;
         }else{
         xVelocity = DIAGONAL_VELOCITY;
@@ -121,6 +138,14 @@ void Ball::move()
         dstRect.x += xVelocity;
         yVelocity = DIAGONAL_VELOCITY;
         dstRect.y += yVelocity;
+
+        if(currentPlayer == CurrentPlayer::playerTwo)
+        {
+            currentPlayer = CurrentPlayer::playerOne;
+        }else
+        {
+            currentPlayer = CurrentPlayer::playerTwo;
+        }
     }
     else
     {

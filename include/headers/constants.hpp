@@ -27,3 +27,8 @@ enum CollisionType {
     middle,
     bottom,
   };
+
+enum CurrentPlayer {
+  playerOne,
+  playerTwo
+};

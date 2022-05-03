@@ -11,8 +11,7 @@
 #include <sounds.hpp>
 
 int main(int argc, char *args[])
-{
-    
+{   
     // initialise sdl
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
         printf("SDL_Init Error: %s", SDL_GetError());

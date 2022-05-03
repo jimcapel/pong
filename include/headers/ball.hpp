@@ -20,6 +20,8 @@ class Ball
 
     Sounds *sounds;
 
+    CurrentPlayer currentPlayer;
+
 public:
     Ball(int x, int y, Player *playerOne, Player *playerTwo, Sounds *sounds);
 
