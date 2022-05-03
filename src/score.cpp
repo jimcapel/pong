@@ -2,7 +2,6 @@
 #include <stdio.h>
 
 #include <score.hpp>
-#include <renderer.hpp>
 #include <constants.hpp>
 
 #include <player.hpp>
